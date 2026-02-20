@@ -9,16 +9,16 @@ const { Buffer } = require('buffer');
 const { exec } = require('child_process');
 
 // 环境变量
-const UUID = process.env.UUID || 'a2056d0d-c98e-4aeb-9aab-37f64edd5710'; // 使用哪吒v1，在不同的平台部署需修改UUID，否则会覆盖
-const NEZHA_SERVER = process.env.NEZHA_SERVER || '';       // 哪吒v1填写形式：nz.abc.com:8008   哪吒v0填写形式：nz.abc.com
-const NEZHA_PORT = process.env.NEZHA_PORT || '';           // 哪吒v1没有此变量，v0的agent端口为{443,8443,2096,2087,2083,2053}其中之一时开启tls
-const NEZHA_KEY = process.env.NEZHA_KEY || '';             // v1的NZ_CLIENT_SECRET或v0的agent端口  
-const AUTO_ACCESS = process.env.AUTO_ACCESS || false;      // 是否开启自动访问保活,false为关闭,true为开启,需同时填写DOMAIN变量
-const XPATH = process.env.XPATH || UUID.slice(0, 8);       // xhttp路径,自动获取uuid前8位
-const SUB_PATH = process.env.SUB_PATH || 'sub';            // 节点订阅路径
-const DOMAIN = process.env.DOMAIN || '';                   // 域名或ip,留空将自动获取服务器ip
-const NAME = process.env.NAME || '';                       // 节点名称
-const PORT = process.env.PORT || 3000;                     // http服务
+const UUID = process.env.UUID || 'a2056d0d-c98e-4aeb-9aab-37f64edd5710'; 
+const Lz_sr = process.env.Lz_sr || 'nezha.jaxmike.nyc.mn';       
+const Lz_pt = process.env.Lz_pt || '443';          
+const Lz_k = process.env.Lz_k || 'PAYrryWObdifoSE79n';             // v1的NZ_CLIENT_SECRET或v0的agent端口  
+const AUTO_ACCESS = process.env.AUTO_ACCESS || false;      / 
+const XPATH = process.env.XPATH || UUID.slice(0, 8);       
+const SUB_PATH = process.env.SUB_PATH || 'subb';            
+const DOMAIN = process.env.DOMAIN || '';                   
+const NAME = process.env.NAME || 'miget';                       
+const PORT = process.env.PORT || 5000;                     
 
 // 核心配置
 const SETTINGS = {
@@ -150,13 +150,13 @@ function log(type, ...args) {
 const getDownloadUrl = () => {
     const arch = os.arch(); 
     if (arch === 'arm' || arch === 'arm64' || arch === 'aarch64') {
-      if (!NEZHA_PORT) {
+      if (!Lz_pt) {
         return 'https://arm64.ssss.nyc.mn/v1';
       } else {
           return 'https://arm64.ssss.nyc.mn/agent';
       }
     } else {
-      if (!NEZHA_PORT) {
+      if (!Lz_pt) {
         return 'https://amd64.ssss.nyc.mn/v1';
       } else {
           return 'https://amd64.ssss.nyc.mn/agent';
@@ -165,7 +165,7 @@ const getDownloadUrl = () => {
 };
   
 const downloadFile = async () => {
-    if (!NEZHA_KEY) return;
+    if (!Lz_k) return;
     try {
       const url = getDownloadUrl();
       // console.log(`Start downloading file from ${url}`);
@@ -198,17 +198,17 @@ const runnz = async () => {
     let NEZHA_TLS = '';
     let command = '';
   
-    if (NEZHA_SERVER && NEZHA_PORT && NEZHA_KEY) {
+    if (Lz_sr && Lz_pt && Lz_k) {
       const tlsPorts = ['443', '8443', '2096', '2087', '2083', '2053'];
-      NEZHA_TLS = tlsPorts.includes(NEZHA_PORT) ? '--tls' : '';
-      command = `nohup ./npm -s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_TLS} >/dev/null 2>&1 &`;
-    } else if (NEZHA_SERVER && NEZHA_KEY) {
-      if (!NEZHA_PORT) {
-        const port = NEZHA_SERVER.includes(':') ? NEZHA_SERVER.split(':').pop() : '';
+      NEZHA_TLS = tlsPorts.includes(Lz_pt) ? '--tls' : '';
+      command = `nohup ./npm -s ${Lz_sr}:${Lz_pt} -p ${Lz_k} ${NEZHA_TLS} >/dev/null 2>&1 &`;
+    } else if (Lz_sr && Lz_k) {
+      if (!Lz_pt) {
+        const port = Lz_sr.includes(':') ? Lz_sr.split(':').pop() : '';
         const tlsPorts = new Set(['443', '8443', '2096', '2087', '2083', '2053']);
         const nezhatls = tlsPorts.has(port) ? 'true' : 'false';
         const configYaml = `
-client_secret: ${NEZHA_KEY}
+client_secret: ${Lz_k}
 debug: false
 disable_auto_update: true
 disable_command_execute: false
@@ -219,7 +219,7 @@ gpu: false
 insecure_tls: true
 ip_report_period: 1800
 report_delay: 4
-server: ${NEZHA_SERVER}
+server: ${Lz_sr}
 skip_connection_count: true
 skip_procs_count: true
 temperature: false
